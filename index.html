@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Icecore</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono&display=swap">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <header>
+    <h1>Icecore</h1>
+    <nav>
+      <button data-tab="config" class="active">Destination</button>
+      <button data-tab="query">Query</button>
+    </nav>
+  </header>
+
+  <main>
+    <section id="config" class="card">
+      <h2>Destination</h2>
+      <form id="config-form" autocomplete="off">
+        <label>Catalog URI <input name="catalogUri" required></label>
+        <label>Warehouse <input name="warehouse" required></label>
+        <label>Token server <input name="tokenServer" required></label>
+        <label>Client ID <input name="clientId" required></label>
+        <label>Client secret <input name="clientSecret" type="password" required></label>
+        <button type="submit" class="primary">Connect</button>
+        <p id="config-status" role="status"></p>
+      </form>
+    </section>
+
+    <section id="query" class="card" hidden>
+      <h2>Query</h2>
+      <textarea id="sql" rows="8" spellcheck="false">SELECT * FROM "default.logs_test" LIMIT 100</textarea>
+      <div class="actions">
+        <button id="run">Run</button>
+        <button id="cancel" hidden>Cancel</button>
+        <span id="query-status" role="status"></span>
+      </div>
+      <div id="results"></div>
+    </section>
+  </main>
+
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
