@@ -1,5 +1,6 @@
 import { icebergQuery } from 'icebird'
 import { connect, tableSources } from './connection.js'
+import { measureFetches } from './timing.js'
 
 const $ = id => document.getElementById(id)
 const storageKey = 'icecore.settings'
@@ -57,20 +58,21 @@ form.addEventListener('submit', async event => {
   }
 })
 
-function renderTable(columns, rows, truncated) {
+function renderTable(columns, rows) {
   const table = document.createElement('table')
   const head = table.createTHead().insertRow()
   for (const column of columns) head.appendChild(document.createElement('th')).textContent = column
   const body = table.createTBody()
-  for (const row of rows) {
+  for (const values of rows) {
     const tr = body.insertRow()
-    for (const column of columns) {
-      const value = row.cells[column] ? row.cells[column]() : undefined
-      tr.insertCell().textContent = format(value)
-    }
+    for (const value of values) tr.insertCell().textContent = format(value)
   }
   $('results').replaceChildren(table)
-  return truncated
+}
+
+// cells are lazy async getters, so they have to be awaited to get the values
+function resolveRow(columns, row) {
+  return Promise.all(columns.map(column => row.cells[column]?.()))
 }
 
 function format(value) {
@@ -96,22 +98,24 @@ $('run').addEventListener('click', async () => {
   $('cancel').hidden = false
   setStatus('query-status', 'Running…')
   const started = performance.now()
+  const stopMeasuring = measureFetches()
   try {
     const tables = await tableSources(connection, query)
     const result = await icebergQuery({ tables, query, signal: controller.signal })
     const rows = []
     for await (const row of result.rows()) {
       if (rows.length === maxRows) break
-      rows.push(row)
+      rows.push(await resolveRow(result.columns, row))
     }
     const truncated = rows.length === maxRows
-    renderTable(result.columns, rows, truncated)
+    renderTable(result.columns, rows)
     const seconds = ((performance.now() - started) / 1000).toFixed(1)
-    setStatus('query-status', `${rows.length}${truncated ? '+' : ''} rows in ${seconds}s`, 'ok')
+    setStatus('query-status', `${rows.length}${truncated ? '+' : ''} rows in ${seconds}s (${stopMeasuring()})`, 'ok')
   } catch (error) {
     $('results').replaceChildren()
     setStatus('query-status', error.name === 'AbortError' ? 'Cancelled' : `Failed: ${error.message}`, error.name === 'AbortError' ? '' : 'error')
   } finally {
+    stopMeasuring()
     $('run').disabled = false
     $('cancel').hidden = true
   }
