@@ -149,3 +149,31 @@ th { position: sticky; top: 0; font-weight: 700; background: #e6e7ee; }
 tbody tr:nth-child(odd) { background: #eeeff4; }
 tbody tr:hover { background: var(--white); }
 td { font-family: var(--mono); font-size: 13px; }
+
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  max-width: calc(100% - 40px);
+  padding: 15px 20px;
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  color: var(--white);
+  background: var(--success);
+  font-weight: 700;
+  line-height: 1.2;
+  transform: translateX(-50%);
+  animation: toast-in 0.3s var(--curve);
+}
+
+.toast svg { flex: none; width: 24px; height: 24px; fill: currentColor; }
+.toast button { all: unset; cursor: pointer; font-size: 20px; line-height: 1; }
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translate(-50%, -20px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}

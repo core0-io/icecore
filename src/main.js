@@ -27,6 +27,29 @@ function setStatus(id, text, kind = '') {
   element.className = kind
 }
 
+function toast(message, duration = 5000) {
+  const element = document.createElement('div')
+  element.className = 'toast'
+  element.setAttribute('role', 'status')
+  element.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm-2 15-5-5 1.4-1.4L10 14.2l7.6-7.6L19 8l-9 9Z"/></svg>'
+  const text = document.createElement('span')
+  text.textContent = message
+  const close = document.createElement('button')
+  close.setAttribute('aria-label', 'Close')
+  close.textContent = '×'
+  close.addEventListener('click', () => element.remove())
+  element.append(text, close)
+  document.body.append(element)
+  setTimeout(() => element.remove(), duration)
+}
+
+// browsers hide the cause of a blocked cross-origin request, so a TypeError can only hint at CORS
+function describe(error) {
+  return error instanceof TypeError
+    ? `${error.message} (network error: if the browser console mentions CORS, check the bucket's CORS configuration)`
+    : error.message
+}
+
 function showTab(name) {
   for (const tab of ['config', 'query']) $(tab).hidden = tab !== name
   for (const button of document.querySelectorAll('nav button')) {
@@ -51,10 +74,11 @@ form.addEventListener('submit', async event => {
     connection = await connect(settings)
     saveSettings(settings)
     setStatus('config-status', 'Connected', 'ok')
+    toast('Connection succeeded')
     showTab('query')
   } catch (error) {
     connection = undefined
-    setStatus('config-status', `Failed: ${error.message}`, 'error')
+    setStatus('config-status', `Failed: ${describe(error)}`, 'error')
   }
 })
 
@@ -113,7 +137,7 @@ $('run').addEventListener('click', async () => {
     setStatus('query-status', `${rows.length}${truncated ? '+' : ''} rows in ${seconds}s (${stopMeasuring()})`, 'ok')
   } catch (error) {
     $('results').replaceChildren()
-    setStatus('query-status', error.name === 'AbortError' ? 'Cancelled' : `Failed: ${error.message}`, error.name === 'AbortError' ? '' : 'error')
+    setStatus('query-status', error.name === 'AbortError' ? 'Cancelled' : `Failed: ${describe(error)}`, error.name === 'AbortError' ? '' : 'error')
   } finally {
     stopMeasuring()
     $('run').disabled = false
