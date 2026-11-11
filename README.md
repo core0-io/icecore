@@ -46,8 +46,3 @@ If the provider has a console CORS editor, enter the same values there. Add the 
 
 If queries fail with a CORS error in the browser console, the origin (scheme, host and port) does not match
 `AllowedOrigins` exactly, or a request header is missing from `AllowedHeaders`.
-
-## Publishing
-
-Pushes to `master` deploy to GitHub Pages (`.github/workflows/pages.yml`) once Pages is enabled under
-Settings → Pages → Source: GitHub Actions. A Pages site is public even when the repository is private.
